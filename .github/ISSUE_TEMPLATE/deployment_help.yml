@@ -1,0 +1,46 @@
+name: Deployment help
+description: Ask for help with local or production deployment.
+title: "[Deploy]: "
+labels: ["deployment"]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include `.env`, `.env.production`, secret files, API keys, or credential exports."
+  - type: dropdown
+    id: target
+    attributes:
+      label: Deployment target
+      options:
+        - Local Docker
+        - Production Docker
+        - GitHub Actions
+        - Terraform
+        - MCP client
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command or action
+      description: What did you run?
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Output or error
+      description: Redact secrets before pasting.
+      render: shell
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks already tried
+      options:
+        - label: I ran `docker compose config --quiet`.
+        - label: I checked the relevant service logs.
+        - label: I verified that no placeholder values remain in my env file.
+        - label: I removed secrets from this issue.
+          required: true

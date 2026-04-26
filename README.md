@@ -284,6 +284,14 @@ Local checks:
 
 This requires Docker and Terraform installed locally.
 
+Local smoke test:
+
+```powershell
+.\scripts\smoke-test.ps1 -Start
+```
+
+This starts the stack if requested, validates Compose, waits for containers, checks n8n health, and calls the example Python runner job when a runner token is available.
+
 ## Troubleshooting
 
 ### n8n does not start
