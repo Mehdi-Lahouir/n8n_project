@@ -1,0 +1,10 @@
+.env
+.env.local
+n8n_data/
+*.log
+shared/
+scripts/
+workflows/
+*.tar.gz
+*.backup
+credentials*.json
