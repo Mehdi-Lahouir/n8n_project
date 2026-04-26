@@ -1,0 +1,34 @@
+services:
+  postgres:
+    container_name: local-n8n-postgres
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-dev-postgres-password}
+
+  redis:
+    container_name: local-n8n-redis
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-local-dev-redis-password}
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:-local-dev-redis-password}"]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$${REDIS_PASSWORD:-local-dev-redis-password}\" ping"]
+
+  n8n:
+    container_name: local-n8n-mcp
+    environment:
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:-local-dev-change-this-32-char-key}
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD:-local-dev-postgres-password}
+      QUEUE_BULL_REDIS_PASSWORD: ${REDIS_PASSWORD:-local-dev-redis-password}
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+
+  n8n-worker:
+    container_name: local-n8n-worker
+    environment:
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:-local-dev-change-this-32-char-key}
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD:-local-dev-postgres-password}
+      QUEUE_BULL_REDIS_PASSWORD: ${REDIS_PASSWORD:-local-dev-redis-password}
+
+  python-runner:
+    container_name: local-n8n-python-runner
+    environment:
+      PYTHON_RUNNER_TOKEN: ${PYTHON_RUNNER_TOKEN:-local-dev-python-runner-token}

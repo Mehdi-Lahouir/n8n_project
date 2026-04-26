@@ -1,0 +1,16 @@
+{$N8N_PUBLIC_HOSTNAME} {
+	basic_auth {
+		{$CADDY_BASIC_AUTH_USER} {$CADDY_BASIC_AUTH_HASH}
+	}
+
+	reverse_proxy n8n:5678
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+}

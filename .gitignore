@@ -1,9 +1,13 @@
 .env
 .env.local
+.env.production
+.env.*.local
 n8n_data/
 *.log
 __pycache__/
 *.py[cod]
+backups/
+secrets/
 shared/*
 !shared/.gitkeep
 scripts/tmp/

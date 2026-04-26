@@ -9,7 +9,16 @@ from pydantic import BaseModel, Field
 
 JOBS_DIR = Path("/runner/jobs").resolve()
 WORK_DIR = Path("/work").resolve()
-TOKEN = os.environ.get("PYTHON_RUNNER_TOKEN", "")
+
+
+def read_secret(name: str) -> str:
+    file_name = os.environ.get(f"{name}_FILE")
+    if file_name:
+        return Path(file_name).read_text(encoding="utf-8").strip()
+    return os.environ.get(name, "")
+
+
+TOKEN = read_secret("PYTHON_RUNNER_TOKEN")
 TIMEOUT_SECONDS = int(os.environ.get("PYTHON_RUNNER_TIMEOUT_SECONDS", "30"))
 
 app = FastAPI(title="n8n Python Runner", version="1.0.0")

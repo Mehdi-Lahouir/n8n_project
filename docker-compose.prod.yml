@@ -1,0 +1,119 @@
+services:
+  postgres:
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    shm_size: 256mb
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    deploy:
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 1G
+
+  redis:
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    command:
+      - /bin/sh
+      - -c
+      - redis-server --appendonly yes --requirepass "$$(cat /run/secrets/redis_password)"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$(cat /run/secrets/redis_password)\" ping"]
+    secrets:
+      - redis_password
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+
+  n8n:
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    environment:
+      N8N_ENCRYPTION_KEY_FILE: /run/secrets/n8n_encryption_key
+      DB_POSTGRESDB_PASSWORD_FILE: /run/secrets/postgres_password
+      QUEUE_BULL_REDIS_PASSWORD_FILE: /run/secrets/redis_password
+      N8N_PROTOCOL: https
+      N8N_SECURE_COOKIE: "true"
+      N8N_PERSONALIZATION_ENABLED: "false"
+      N8N_HIRING_BANNER_ENABLED: "false"
+      N8N_TEMPLATES_ENABLED: "false"
+      N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "true"
+      N8N_COMMUNITY_PACKAGES_ENABLED: "false"
+    secrets:
+      - n8n_encryption_key
+      - postgres_password
+      - redis_password
+    deploy:
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 1G
+
+  n8n-worker:
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    environment:
+      N8N_ENCRYPTION_KEY_FILE: /run/secrets/n8n_encryption_key
+      DB_POSTGRESDB_PASSWORD_FILE: /run/secrets/postgres_password
+      QUEUE_BULL_REDIS_PASSWORD_FILE: /run/secrets/redis_password
+      N8N_PROTOCOL: https
+      N8N_SECURE_COOKIE: "true"
+      N8N_PERSONALIZATION_ENABLED: "false"
+      N8N_HIRING_BANNER_ENABLED: "false"
+      N8N_TEMPLATES_ENABLED: "false"
+      N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "true"
+      N8N_COMMUNITY_PACKAGES_ENABLED: "false"
+    secrets:
+      - n8n_encryption_key
+      - postgres_password
+      - redis_password
+    deploy:
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 1G
+
+  python-runner:
+    restart: always
+    environment:
+      PYTHON_RUNNER_TOKEN_FILE: /run/secrets/python_runner_token
+    secrets:
+      - python_runner_token
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+
+  caddy:
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+
+secrets:
+  n8n_encryption_key:
+    file: ./secrets/n8n_encryption_key
+  postgres_password:
+    file: ./secrets/postgres_password
+  redis_password:
+    file: ./secrets/redis_password
+  python_runner_token:
+    file: ./secrets/python_runner_token

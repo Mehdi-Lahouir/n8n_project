@@ -1,0 +1,32 @@
+services:
+  caddy:
+    image: ${CADDY_IMAGE:-caddy:2.9.1-alpine}
+    restart: unless-stopped
+    command:
+      - /bin/sh
+      - -c
+      - export CADDY_BASIC_AUTH_HASH="$$(cat /run/secrets/caddy_basic_auth_hash)"; caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+    depends_on:
+      - n8n
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    environment:
+      N8N_PUBLIC_HOSTNAME: ${N8N_PUBLIC_HOSTNAME:-n8n.localhost}
+      CADDY_BASIC_AUTH_USER: ${CADDY_BASIC_AUTH_USER:?Set CADDY_BASIC_AUTH_USER}
+    volumes:
+      - ./ops/caddy/Caddyfile.production:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    secrets:
+      - caddy_basic_auth_hash
+    networks:
+      - n8n_internal
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+secrets:
+  caddy_basic_auth_hash:
+    file: ./secrets/caddy_basic_auth_hash
