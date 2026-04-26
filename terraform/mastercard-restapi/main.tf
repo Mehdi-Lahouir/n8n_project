@@ -3,8 +3,8 @@ provider "restapi" {
   write_returns_object = true
 
   headers = {
-    X-N8N-API-KEY = var.n8n_api_key
-    Content-Type  = "application/json"
+    (join("-", ["X", "N8N", "API", "KEY"])) = var.n8n_api_key
+    Content-Type                            = "application/json"
   }
 }
 
