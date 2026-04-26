@@ -1,0 +1,115 @@
+x-n8n-common: &n8n-common
+  image: ${N8N_IMAGE:-docker.n8n.io/n8nio/n8n:latest}
+  restart: unless-stopped
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  environment:
+    N8N_HOST: ${N8N_HOST:-localhost}
+    N8N_PORT: 5678
+    N8N_PROTOCOL: ${N8N_PROTOCOL:-http}
+    WEBHOOK_URL: ${N8N_WEBHOOK_URL:-http://localhost:5678/}
+    N8N_EDITOR_BASE_URL: ${N8N_EDITOR_BASE_URL:-http://localhost:5678/}
+    GENERIC_TIMEZONE: ${GENERIC_TIMEZONE:-Europe/Berlin}
+    TZ: ${TZ:-Europe/Berlin}
+    N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+    N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
+    N8N_BLOCK_FILE_ACCESS_TO_N8N_FILES: "true"
+    N8N_RESTRICT_FILE_ACCESS_TO: /files
+    N8N_DIAGNOSTICS_ENABLED: ${N8N_DIAGNOSTICS_ENABLED:-false}
+    N8N_VERSION_NOTIFICATIONS_ENABLED: ${N8N_VERSION_NOTIFICATIONS_ENABLED:-true}
+    N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE: "true"
+    N8N_RUNNERS_ENABLED: "true"
+    DB_TYPE: postgresdb
+    DB_POSTGRESDB_HOST: postgres
+    DB_POSTGRESDB_PORT: 5432
+    DB_POSTGRESDB_DATABASE: ${POSTGRES_DB:-n8n}
+    DB_POSTGRESDB_USER: ${POSTGRES_USER:-n8n}
+    DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+    EXECUTIONS_MODE: queue
+    QUEUE_BULL_REDIS_HOST: redis
+    QUEUE_BULL_REDIS_PORT: 6379
+    EXECUTIONS_DATA_PRUNE: "true"
+    EXECUTIONS_DATA_MAX_AGE: ${EXECUTIONS_DATA_MAX_AGE:-336}
+  volumes:
+    - n8n_data:/home/node/.n8n
+    - ./shared:/files
+  networks:
+    - n8n_internal
+
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE:-postgres:16-alpine}
+    container_name: local-n8n-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-n8n}
+      POSTGRES_USER: ${POSTGRES_USER:-n8n}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-n8n} -d ${POSTGRES_DB:-n8n}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - n8n_internal
+
+  redis:
+    image: ${REDIS_IMAGE:-redis:7-alpine}
+    container_name: local-n8n-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - n8n_internal
+
+  n8n:
+    <<: *n8n-common
+    container_name: local-n8n-mcp
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+
+  n8n-worker:
+    <<: *n8n-common
+    container_name: local-n8n-worker
+    command: ["worker", "--concurrency=${N8N_WORKER_CONCURRENCY:-5}"]
+
+  python-runner:
+    build:
+      context: ./python-runner
+    container_name: local-n8n-python-runner
+    restart: unless-stopped
+    environment:
+      PYTHON_RUNNER_TOKEN: ${PYTHON_RUNNER_TOKEN}
+      PYTHON_RUNNER_TIMEOUT_SECONDS: ${PYTHON_RUNNER_TIMEOUT_SECONDS:-30}
+    volumes:
+      - ./python-runner/jobs:/runner/jobs:ro
+      - ./shared:/work
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - n8n_internal
+
+volumes:
+  n8n_data:
+  postgres_data:
+  redis_data:
+
+networks:
+  n8n_internal:
+    driver: bridge

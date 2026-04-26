@@ -1,0 +1,8 @@
+.git
+.github
+terraform
+node_modules
+**/__pycache__
+**/*.pyc
+*.log
+.env

@@ -1,0 +1,13 @@
+{
+  "name": "n8n-devsecops-stack",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "mcp": "node mcp/n8n-api-mcp-server.js",
+    "workflow:apply": "node scripts/force-mcp-workflow.js workflows/example.workflow.json"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
