@@ -55,7 +55,7 @@ services:
       - n8n_internal
 
   redis:
-    image: ${REDIS_IMAGE:-redis:7.4.2-alpine}
+    image: ${REDIS_IMAGE:-redis:8.6.3-alpine}
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
