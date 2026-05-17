@@ -1,6 +1,6 @@
 services:
   caddy:
-    image: ${CADDY_IMAGE:-caddy:2.9.1-alpine}
+    image: ${CADDY_IMAGE:-caddy:2.11.3-alpine}
     restart: unless-stopped
     command:
       - /bin/sh
