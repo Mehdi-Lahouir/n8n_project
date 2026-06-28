@@ -1,5 +1,5 @@
 x-n8n-common: &n8n-common
-  image: ${N8N_IMAGE:-docker.n8n.io/n8nio/n8n:2.16.1}
+  image: ${N8N_IMAGE:-docker.n8n.io/n8nio/n8n:2.27.4}
   restart: unless-stopped
   depends_on:
     postgres:
